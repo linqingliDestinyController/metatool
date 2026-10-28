@@ -1,0 +1,23 @@
+# Core versions observed in the completed run. Python 3.10.21, CUDA 12.4.
+torch==2.6.0
+transformers==4.51.3
+vllm==0.8.5.post1
+ray[default]==2.47.1
+numpy==1.26.4
+safetensors==0.8.0
+# Supporting dependencies: compatible constraints, not a recovered complete freeze.
+accelerate>=1.0,<2
+datasets>=3,<4
+pandas>=2,<3
+pyarrow>=19,<20
+tensordict==0.8.3
+torchdata==0.11.0
+hydra-core==1.3.2
+omegaconf==2.3.0
+codetiming==1.4.0
+peft>=0.15,<0.16
+packaging>=24,<26
+dill
+wandb
+pylatexenc
+pybind11

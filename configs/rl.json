@@ -1,0 +1,24 @@
+{
+  "name": "metatool",
+  "scope": "development_only",
+  "seed": 42,
+  "steps": 100,
+  "optimizer_steps_per_rank": 200,
+  "gpus": 6,
+  "natural_rollouts_per_step": 384,
+  "auxiliary_train_prompts_per_step": 12,
+  "draws_per_branch": 2,
+  "auxiliary_outputs_per_step_max": 48,
+  "absolute_action_penalty": 0.05,
+  "route_coefficient": 0.01,
+  "cost_tie_margin": 0.1,
+  "minimum_cost_gap": 32,
+  "cost_budget": 2048,
+  "prefix_content_tokens": 64,
+  "save_steps": [
+    50,
+    100
+  ],
+  "full_training_state": "step50 only",
+  "automatic_gpu_retries": 0
+}

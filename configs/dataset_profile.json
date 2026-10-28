@@ -1,0 +1,10 @@
+{
+  "train.parquet": {
+    "sha256": "4255872955f3769e701cddefaa3a87642f90c0e8e3da2ac0136bbef4378699e4",
+    "rows": 3907
+  },
+  "validation.parquet": {
+    "sha256": "4df4b49d86d8e13b40e0665c6d7edb42fcf1af49c67ecf62b117fdd278c5633f",
+    "rows": 80
+  }
+}

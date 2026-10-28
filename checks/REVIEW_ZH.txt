@@ -1,0 +1,18 @@
+本次交付检查
+
+PASS：Stage 2 入口直接绑定外部完整模型，不依赖其他阶段的模型导出记录。
+PASS：随包数据仅含 API-Bank 三个评测 JSON，共 597 条；不含偏好训练样本、RL parquet、其他评测数据或 tokenizer 文件。
+PASS：外部训练/验证 parquet 使用既定 SHA256 约束，不能用 API-Bank 评测输入替代。
+PASS：删除未启用的数学题和搜索工具示例；保留 277 个训练核心/框架文件的原有字节，训练启动脚本及主要训练配置也保持一致。
+PASS：小型 CPU 张量的 PPO 直接梯度、路线梯度、CPU RNG 恢复；输入绑定及启动调度、清理范围、重复清理和符号链接保护。
+PASS：真实启动覆盖项可以完成配置组合；当前为 FSDP、同步 vLLM、6 GPU、100 步，未启用多轮工具示例。
+PASS：原 API 评分器对外部已有预测的兼容性检查为 402/597。此数值仅验证评分器，没有在本包重新训练模型；预测内容未随包发布。
+PASS：Python 语法、shell 语法、CLI 帮助及发布清单校验。
+
+NOT_VERIFIED：本次没有 GPU 训练、没有新模型预测；没有在 GPU 上重新验证第 50 步恢复逐位一致性或全新环境安装。CPU 启动测试模拟了 GPU 子进程，不证明训练已完成。
+
+模型、训练数据和验证数据都由用户提供外部路径。训练运行的所有 rollout、checkpoint 和最终模型写入独立 WORK 目录。包内只给 API-Bank 不代表可以用 API-Bank 代替原训练集。
+
+第三方依赖说明：single_controller 与 vllm 适配层在当前训练路径中使用，必须保留。torch 兼容目录服务于旧版 PyTorch 的 FSDP2 分支；sglang 目录服务于备用推理后端，当前配置没有启用这两个分支。本次保留通用兼容代码及原版权信息。
+
+具体检查项及边界见 CHECKS.json、CPU_TESTS.json；运行说明见 README.md，执行提示见 docs/CODEX_PROMPT_ZH.txt。

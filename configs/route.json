@@ -1,0 +1,32 @@
+{
+  "schema_version": 42,
+  "objective": "metatool_stop_continue",
+  "model_tokenizer_length": 151669,
+  "open_ids": [
+    151667,
+    198
+  ],
+  "close_id": 151668,
+  "content_tokens_before_decision": 64,
+  "continue_token_range": [
+    0,
+    151643
+  ],
+  "probe_budget": 2048,
+  "per_mode": 2,
+  "max_states": 12,
+  "route_coefficient": 0.01,
+  "cost_tie_margin": 0.1,
+  "minimum_cost_gap": 32,
+  "sampling": {
+    "temperature": 1.0,
+    "top_p": 1.0,
+    "top_k": -1,
+    "stop_token_ids": [
+      151643,
+      151645
+    ]
+  },
+  "state_source": "actual current main rollout IDs, one fixed prefix per eligible Call prompt; no future outcome selection",
+  "fallback": "inactive slots only, zero margin, no generated auxiliary samples; never initial-route fallback"
+}

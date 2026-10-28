@@ -1,0 +1,16 @@
+metatool research implementation
+
+The vendored distributed training engine is derived from verl. Copyright and
+Apache-2.0 license headers are retained in the corresponding source files.
+It includes contributions credited to ByteDance, SGLang, ModelBest, Amazon and
+other named copyright holders. Local adaptations concern tool-use training,
+recovery, token weighting, routing and module organization.
+
+API-Bank inputs and matching behavior originate from the benchmark and the
+supplied processed evaluation fixtures; see https://github.com/AlibabaResearch/DAMO-ConvAI/tree/main/api-bank.
+Qwen tokenizer compatibility is specified by hashes in the model profile.
+Tokenizer files and model weights are supplied externally and are not bundled.
+See https://huggingface.co/Qwen/Qwen3-8B.
+
+The code license does not relicense third-party models or datasets. Preserve
+applicable upstream license notices when redistributing their contents.

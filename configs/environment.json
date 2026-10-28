@@ -1,0 +1,12 @@
+{
+  "python": "3.10.21",
+  "torch": "2.6.0+cu124",
+  "transformers": "4.51.3",
+  "vllm": "0.8.5.post1",
+  "ray": "2.47.1",
+  "numpy": "1.26.4",
+  "safetensors": "0.8.0",
+  "cuda": "12.4",
+  "training_vllm_engine": "0",
+  "evaluation_vllm_engine": "1"
+}

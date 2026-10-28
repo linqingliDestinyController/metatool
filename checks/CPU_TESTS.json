@@ -1,0 +1,17 @@
+{
+  "status": "PASS",
+  "checks": {
+    "direct_model_install_and_train_dispatch_without_external_receipt": "PASS",
+    "resume_model_binding": "PASS",
+    "input_content_change_detection": "PASS",
+    "checkpoint_retirement_scope_idempotence_and_symlink_guard": "PASS",
+    "native_PPO_gradient_positive_negative_zero": "PASS",
+    "route_gradient_and_inactive_slots": "PASS",
+    "CPU_RNG_roundtrip": "PASS"
+  },
+  "new_language_model_training_updates": 0,
+  "new_model_outputs": 0,
+  "GPU_subprocess_mocked": true,
+  "full_GPU_training": "NOT_VERIFIED",
+  "distributed_step50_resume": "NOT_VERIFIED"
+}
