@@ -1,4 +1,4 @@
-# metatool — Stage 2
+# metatool 
 
 独立在线 RL 代码包，直接从 `--model` 指定的本地完整 HF 模型开始。当前沿用 **Qwen3-8B、6 GPU、100 步**训练配置。
 
@@ -114,6 +114,3 @@ FlashAttention 须与 PyTorch/CUDA 匹配。原归档未提供完整依赖及编
 CUDA_VISIBLE_DEVICES="" python tests_cpu.py
 ```
 
-默认只检查小张量 PPO/路线梯度及 CPU RNG。需要检查输入绑定和启动调度时，额外提供 `--model-metadata`、`--train-data` 和 `--validation-data`；检查只使用模型目录中的元数据，采用微型权重容器和模拟 GPU 子进程，不加载语言模型权重。
-
-本次没有真实 GPU 训练或生成新预测。检查结果见 `checks/`。执行提示在 `docs/CODEX_PROMPT_ZH.txt`；许可见 `LICENSE` 和 `NOTICE`。
