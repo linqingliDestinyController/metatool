@@ -2,7 +2,7 @@
 This is the demo RL training code for the paper:"MetaTool : Thinking Just Enough, Calling Tools When Needed" . 
 
 # Model Structure
-
+![main](main.png)
 
 独立在线 RL 代码包，直接从 `--model` 指定的本地完整 HF 模型开始。当前沿用 **Qwen3-8B、6 GPU、100 步**训练配置。
 
