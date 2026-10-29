@@ -1,24 +1,10 @@
-# metatool 
+# Metatool 
 This is the demo RL training code for the paper:"MetaTool : Thinking Just Enough, Calling Tools When Needed" . 
 
 # Model Structure
 ![main](main.png)
 
-独立在线 RL 代码包，直接从 `--model` 指定的本地完整 HF 模型开始。当前沿用 **Qwen3-8B、6 GPU、100 步**训练配置。
-
-包内 `data/` 只包含 API-Bank 三个评测输入文件：
-
-| 文件 | 样本数 |
-|---|---:|
-| `data/api_bank/level-1-api_processed.json` | 399 |
-| `data/api_bank/level-2-api_processed.json` | 67 |
-| `data/api_bank/level-3-api_processed.json` | 131 |
-
-包内不含偏好训练实现、偏好正负样本、Natural/dev80 数据、RL 训练 parquet、tokenizer 文件或历史模型预测。这些数据没有换一个目录继续打包。
-
-## 直接运行
-
-模型权重与原有 RL 训练/验证 parquet 由外部路径提供。API-Bank 是评测输入，不用于训练。
+## Run
 
 ```bash
 python run.py train \
@@ -28,46 +14,39 @@ python run.py train \
   --work /absolute/path/to/metatool_rl_work \
   --gpus 0,1,2,3,4,5
 ```
+## Checkpointing and Recovery
 
-首次运行必须指定这三项输入。模型须为完整且兼容的 HF 目录，不能是 adapter 或 FSDP 分片。`WORK` 使用代码包外的新目录，并与输入模型分离。训练输入与 `configs/dataset_profile.json` 的原有 RL 数据哈希绑定；不能用 API-Bank 的 JSON 替代 parquet。
+Each training step saves all 384 main rollouts, including the actual generated token IDs, prompt IDs, decoded text, and labels. Auxiliary branch outputs, state selections, and supervision targets are also saved. Inactive placeholder slots are excluded from the count of generated outputs.
 
-启动器只做必要的输入、tokenizer、核心环境、GPU 可用性和磁盘检查，然后训练。不执行前置微调、额外 GPU smoke 或实验矩阵。模型首次注册保存完整 SHA256，文件大小、mtime、ctime 和 inode 未变化时复用内容绑定，发生变化则重新核对内容。
-
-输入模型可以是原始兼容模型，也可以是已有的兼容完整模型，不要求其他阶段的目录或导出记录。**从原始基座直接进行 RL 是新的仅 RL 实验，其结果需要重测。** 本包未提供该实验的成绩。
-
-## 保存与恢复
-
-每步保存全部 384 条主 rollout 的实际 IDs、prompt IDs、解码文本和标签。辅助分支输出、选择和目标继续保存；无效占位不计作真实生成。
-
-第 50 步保存完整模型、优化器、scheduler、RNG、driver/dataloader 和支持的 rollout 状态。第 100 步提交并校验后才删除第 50 步。最终模型导出并校验后清除本运行的训练 checkpoint，保留输入模型、最终模型、全部 rollout 和日志。
+At step 50, a recovery checkpoint saves the model, optimizer, scheduler, RNG states, driver and dataloader states, and supported rollout states. This checkpoint is deleted only after the step-100 checkpoint has been saved and verified. Once the final model has been exported and verified, the run's training checkpoints are removed. The input model, final model, all rollouts, and logs are retained.
 
 ```bash
-# 修复故障后，从完整50步状态继续。
+# After resolving a failure, resume from the complete step-50 checkpoint.
 python run.py train --work /absolute/path/to/metatool_rl_work \
   --gpus 0,1,2,3,4,5 --resume
 
-# 仅启动检查失败且没有优化更新时使用。
+# Use only when preflight checks failed before any optimizer updates.
 python run.py train --work /absolute/path/to/metatool_rl_work \
   --gpus 0,1,2,3,4,5 --retry-preflight
 
-# 训练已完成，仅恢复导出或清理，不训练。
+# Complete model export or cleanup after training, without further training.
 python run.py finalize --work /absolute/path/to/metatool_rl_work
 ```
 
-恢复会使用已登记的模型和数据路径，不能换输入。第 50 步前发生故障时没有相应恢复点；不会自动重复已消耗的预算。完整分布式 GPU 恢复的逐位一致性未在此次交付中重新测试。
+Recovery uses the registered model and dataset paths; these inputs cannot be changed when resuming. No recovery checkpoint is available for failures before step 50. The launcher does not automatically repeat training that has already consumed the allocated budget. Bitwise equivalence of full distributed GPU recovery has not been revalidated for this release.
 
-| 输出 | 相对 WORK 的路径 |
+| Output | Path relative to `WORK` |
 |---|---|
-| 最终模型 | `runs/metatool_seed42/merged_hf/` |
-| 全部主 rollout | `runs/metatool_seed42/main_rollouts/` |
-| 辅助输出及目标 | `runs/metatool_seed42/branch_probes/` |
-| 每次启动与错误日志 | `runs/metatool_seed42/attempts/` |
-| 训练计数 | `runs/metatool_seed42/TRAINING_SUMMARY.json` |
-| 模型和外部数据绑定 | `INSTALL.json` |
+| Final model | `runs/metatool_seed42/merged_hf/` |
+| All main rollouts | `runs/metatool_seed42/main_rollouts/` |
+| Auxiliary outputs and targets | `runs/metatool_seed42/branch_probes/` |
+| Launch and error logs | `runs/metatool_seed42/attempts/` |
+| Training counts | `runs/metatool_seed42/TRAINING_SUMMARY.json` |
+| Registered model and external datasets | `INSTALL.json` |
 
-运行生成的 rollout 在 WORK 下保存，不会添加到发布包的 `data/`。磁盘检查使用扣除已有文件后的实际可用空间；不会提前删除第 50 步来腾空间。
+Generated rollouts are stored under `WORK`, not in the release package's `data/` directory. Disk checks use the actual remaining free space after accounting for existing files. The step-50 checkpoint is not deleted early to free disk space.
 
-## API-Bank 评测
+## API-Bank Evaluation
 
 ```bash
 FINAL=/absolute/path/to/metatool_rl_work/runs/metatool_seed42/merged_hf
@@ -75,9 +54,9 @@ python run.py evaluate --model "$FINAL" \
   --output /absolute/path/to/metatool_rl_work/eval_api --gpu 0
 ```
 
-保持固定的 597 个样本、原解析与 soft-match 规则、采样参数。先保存原始生成 chunk，再解析评分。评测使用独立 vLLM 进程。
+Evaluation preserves the fixed set of 597 examples, the original parser and soft-match rules, and the sampling settings. Raw generation chunks are saved before parsing and scoring. Evaluation runs in a separate vLLM process.
 
-已有预测可用 CPU 评分：
+Existing predictions can be scored on CPU:
 
 ```bash
 CUDA_VISIBLE_DEVICES="" python run.py score \
@@ -85,11 +64,11 @@ CUDA_VISIBLE_DEVICES="" python run.py score \
   --output /absolute/path/to/api_scores.json
 ```
 
-## 环境
+## Environment
 
-优先复用满足核心版本的环境：Python 3.10.21、Torch 2.6.0+cu124、Transformers 4.51.3、vLLM 0.8.5.post1、Ray 2.47.1。版本见 `configs/environment.json`。
+Reuse an existing environment with the required core versions whenever possible: Python 3.10.21, PyTorch 2.6.0+cu124, Transformers 4.51.3, vLLM 0.8.5.post1, and Ray 2.47.1. See `configs/environment.json` for the version configuration.
 
-新环境安装示例：
+Example installation in a new environment:
 
 ```bash
 python -m venv .venv
@@ -100,20 +79,19 @@ python -m pip install -r requirements.txt
 python -m pip install flash-attn --no-build-isolation
 ```
 
-FlashAttention 须与 PyTorch/CUDA 匹配。原归档未提供完整依赖及编译器锁文件，此次没有新建 GPU 环境验证安装流程。模型结构、原生 token IDs、tokenizer/chat template、batch 和分布式布局与当前配置绑定；其元数据约束见 `configs/model_profile.json`，实际 tokenizer 文件由输入模型提供。
+FlashAttention must be compatible with the installed PyTorch and CUDA versions. The source archive did not include a complete dependency and compiler lockfile, and installation in a fresh GPU environment has not been validated for this release. The model architecture, native token IDs, tokenizer and chat template, batch configuration, and distributed layout are tied to the current configuration. See `configs/model_profile.json` for the metadata requirements. The tokenizer files must be supplied with the input model.
 
-## 目录与 CPU 验证
+## Project Structure and CPU Validation
 
-- `metatool/rl/`：token 信用、动作修正、停止/继续监督、rollout 记录与恢复。
-- `vendor/verl/`：当前训练使用的分布式引擎与适配。
-- `runtime/`：外部输入绑定、启动、模型导出和清理。
-- `metatool/evaluation/`：API-Bank 推理和评分。
-- `data/api_bank/`：唯一随包提供的数据。
+- `metatool/rl/`: token credit assignment, action correction, Stop/Continue supervision, rollout logging, and recovery.
+- `vendor/verl/`: the distributed training engine and its adaptations.
+- `runtime/`: external input registration, training launch, model export, and cleanup.
+- `metatool/evaluation/`: API-Bank inference and scoring.
+- `data/api_bank/`: the only datasets included in this package.
 
-`vendor/verl/verl/third_party/` 是依赖兼容层，不是额外训练方法或数据。`vllm/` 由当前生成及权重同步路径使用；`torch/` 是旧版 PyTorch 的 FSDP2 状态加载兼容实现，当前 FSDP1 配置不启用；`sglang/` 服务于备用推理后端，当前 vLLM 配置不启用。保留这些通用兼容分支及其版权信息，不把它们作为 MetaTool 的方法贡献。未使用的数学题和搜索工具示例已移除。
+`vendor/verl/verl/third_party/` contains dependency compatibility layers, not additional training methods or datasets. The current generation and weight-synchronization paths use `vllm/`. The `torch/` directory provides compatibility code for loading FSDP2 states with older PyTorch versions; it is inactive under the current FSDP1 configuration. The `sglang/` directory supports an alternative inference backend and is inactive under the current vLLM configuration. These compatibility components and their copyright notices are retained and are not presented as methodological contributions of MetaTool. Unused mathematics and search-tool examples have been removed.
 
-`vendor/verl/verl/single_controller/` 是当前训练直接依赖的多卡任务调度层：通过 Ray 创建 GPU worker、分配资源、分发 batch 和远程方法调用、收集各 rank 的结果。这里的 single 指统一控制进程；实际计算由多个 GPU worker 完成。MetaTool 的决策和损失实现位于 `metatool/rl/`。
-
+`vendor/verl/verl/single_controller/` provides the multi-GPU task orchestration used by the current training pipeline. It uses Ray to create GPU workers, allocate resources, dispatch batches and remote method calls, and collect results from each rank. Here, “single” refers to a central controller; computation is performed by multiple GPU workers. MetaTool's decision and loss implementations are located in `metatool/rl/`.
 ```bash
 CUDA_VISIBLE_DEVICES="" python tests_cpu.py
 ```
