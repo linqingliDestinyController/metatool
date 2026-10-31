@@ -4,18 +4,6 @@ This is the demo RL training code for the paper:"MetaTool : Thinking Just Enough
 # Model Structure
 ![main](main.png)
 
-## Data
-
-| File | Examples | Usage |
-|---|---:|---|
-| `data/rl/train.parquet` | 3,907 | Training |
-| `data/rl/validation.parquet` | 80 | Validation |
-| `data/api_bank/level-1-api_processed.json` | 399 | API-Bank Level 1 |
-| `data/api_bank/level-2-api_processed.json` | 67 | API-Bank Level 2 |
-| `data/api_bank/level-3-api_processed.json` | 131 | API-Bank Level 3 |
-
-Training and validation paths can point to the bundled parquet files or external copies matching `configs/dataset_profile.json`. API-Bank data is used for evaluation.
-
 ## Run
 
 Run from the project directory:
