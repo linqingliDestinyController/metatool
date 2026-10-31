@@ -18,8 +18,8 @@ def main():
     p=argparse.ArgumentParser(description=__doc__);s=p.add_subparsers(dest='command',required=True)
     q=s.add_parser('train',aliases=['rl']);q.add_argument('--model',type=Path,help='Required for a new run; complete local HF model')
     q.add_argument('--work',type=Path,required=True);q.add_argument('--gpus',default='0,1,2,3,4,5')
-    q.add_argument('--train-data',type=Path,help='External frozen RL train.parquet; required for a new run')
-    q.add_argument('--validation-data',type=Path,help='External frozen RL validation.parquet; required for a new run')
+    q.add_argument('--train-data',type=Path,help='Explicit frozen RL train.parquet path (bundled data/rl or external); required for a new run')
+    q.add_argument('--validation-data',type=Path,help='Explicit frozen RL validation.parquet path (bundled data/rl or external); required for a new run')
     modes=q.add_mutually_exclusive_group();modes.add_argument('--resume',action='store_true');modes.add_argument('--retry-preflight',action='store_true')
     q=s.add_parser('finalize');q.add_argument('--work',type=Path,required=True)
     q=s.add_parser('score');q.add_argument('--predictions',type=Path,required=True);q.add_argument('--output',type=Path,required=True)
@@ -42,7 +42,7 @@ def main():
             if a.resume or a.retry_preflight:p.error('Cannot resume or retry a missing work directory')
             if a.model is None:p.error('--model is required for a new run')
             if a.train_data is None or a.validation_data is None:
-                p.error('--train-data and --validation-data are required; this package bundles only API-Bank evaluation data')
+                p.error('--train-data and --validation-data are required; use explicit paths to bundled data/rl parquet or external files matching configs/dataset_profile.json; API-Bank is evaluation-only')
             install(work,a.model.resolve(),a.train_data.resolve(),a.validation_data.resolve())
         record=verify_install(work)
         if a.model is not None and str(a.model.resolve())!=record['initial_model']['path']:

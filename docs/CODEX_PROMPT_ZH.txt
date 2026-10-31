@@ -1,4 +1,4 @@
-请执行本包的 metatool Stage 2 在线RL训练。包内data只能保留API-Bank，不能重新添加偏好正负样本、其他benchmark数据、tokenizer或历史预测，也不能将这些内容换个目录打包。
+以下为用户明确授权训练时使用的执行提示，不代表 CPU 检查任务已获训练授权。包内 data 包含 API-Bank 评测输入及原始 RL train/validation parquet。保留原始数据，不在本次修复中替换或脱敏；未脱敏数据不应直接公开上传。不要添加偏好正负样本、其他 benchmark 数据、tokenizer 或历史预测。
 
 不执行偏好训练、SFT、DPO或额外前置训练。输入由我指定的MODEL、TRAIN_DATA、VALIDATION_DATA提供。WORK是代码包外的新目录，不假定云平台路径。
 
@@ -7,20 +7,20 @@
 执行：
 python run.py train --model "$MODEL" --train-data "$TRAIN_DATA" --validation-data "$VALIDATION_DATA" --work "$WORK" --gpus 0,1,2,3,4,5
 
-外部训练数据应为原有RL train/validation parquet。API-Bank的597条数据仅用于评测，不能作为本实验的训练数据。若必要输入缺失，准确报告缺失路径，不下载或制造替代训练集。
+显式 TRAIN_DATA、VALIDATION_DATA 路径可指向包内 data/rl 或外部原有 RL parquet，均须符合 configs/dataset_profile.json 的冻结哈希。API-Bank的597条数据仅用于评测，不能作为本实验的训练数据。若必要输入缺失，准确报告缺失路径，不下载或制造替代训练集。
 
 只做启动器内必要检查，然后开始训练。不要先跑额外GPU smoke或其他微调。第0/50/100步验证属于冻结训练协议，保留。
 
-保存所有主rollout的实际token IDs、prompt、文本和标签，以及全部实际辅助分支输出、选择和目标。占位不计作输出。第50步保存完整恢复状态，第100步提交校验后删除50步，最终模型导出并校验后清理本运行的训练checkpoint。保留输入模型、外部数据、导出模型和日志，运行输出留在WORK内。
+保存所有主rollout的实际token IDs、prompt、文本和标签，以及全部实际辅助分支输出、选择和目标。占位不计作输出。第50步完整 checkpoint 成功提交后才能恢复；此前故障没有可用恢复点。第100步模型 checkpoint 提交并校验后删除50步，无须等待 merged_hf 导出；最终模型导出并校验后清理本运行的训练 checkpoint。保留输入模型、显式输入数据、导出模型和日志，运行输出留在 WORK 内。全部 rollout 证据还包括 attempts/attempt_*/rolled_back_evidence/。日志还包括运行目录的 training_audit_*.log、merge_*.log；早期模型绑定错误可能仅输出到终端。
 
 出错后保留traceback和现场，不自动重训或切换算法。完整50步状态可用且工程故障修复后使用：
 python run.py train --work "$WORK" --gpus 0,1,2,3,4,5 --resume
-仅启动检查失败、没有优化更新时使用--retry-preflight；仅导出失败使用python run.py finalize --work "$WORK"。报告已完成和需要重放的更新预算。
+仅启动检查失败、没有优化更新时使用--retry-preflight；仅导出失败使用python run.py finalize --work "$WORK"。启动器不自动重复已消耗的训练预算；手动 resume 可能重做第50步之后、故障前的更新，报告保留轨迹及实际重放成本。恢复使用已登记模型和数据路径，不能更换。真实 GPU 训练和分布式恢复逐位等价仍为 NOT_VERIFIED。
 
 最终评测API-Bank：
 FINAL="$WORK/runs/metatool_seed42/merged_hf"
 python run.py evaluate --model "$FINAL" --output "$WORK/eval_api" --gpu 0
 
-保持固定分母、原评分规则和采样参数。若从原始基座启动，结果必须重新测量，不能引用此前两阶段模型的成绩。
+保持固定分母、原评分规则和采样参数。若从原始基座启动，结果必须重新测量，不能引用此前两阶段模型的成绩；tokenizer 兼容不证明权重与历史初始化相同。
 
 交付输入模型/数据hash、代码hash、实际训练计数、API结果和token成本，以及未验证项。

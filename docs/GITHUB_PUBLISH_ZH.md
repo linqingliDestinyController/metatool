@@ -1,16 +1,7 @@
-# 发布代码
+# 发布前的数据检查
 
-在解压后的 `metatool` 目录中操作。先确认 README 的“仅在线 RL”范围符合你希望公开的方法；保留第三方许可证。模型和工作目录放在仓库之外。
+当前完整代码 ZIP 包含 `data/rl/train.parquet`、`data/rl/validation.parquet` 原始未脱敏训练/验证数据，不应直接公开上传，也不要直接执行 `git add .` 后公开推送。此前“只包含 API-Bank / 不含 RL parquet”的描述不符合实际包内容。
 
-```bash
-git init -b main
-git add .
-git status --short
-git commit -m "Release metatool online RL implementation"
-gh auth login
-gh repo create metatool --public --source=. --remote=origin --push
-```
+本次仅修复 tokenizer 输入兼容性及文档，不替换、过滤或脱敏训练数据。若后续需要公开发布，应另行明确数据授权与脱敏范围，再制作独立公开版本；不要改动本次冻结实验输入。保留第三方许可证；模型、工作目录和本次外部检查报告不属于代码发布包。
 
-已有远端空仓库时，改用 `git remote add origin <仓库URL>` 和 `git push -u origin main`。不要覆盖已有同名远端仓库。
-
-代码和配置修改后，可用 `python scripts/make_manifest.py` 更新完整性清单；已经开始训练的运行应继续绑定原代码，新的代码使用新的工作目录。
+代码和配置修改后，用 `python scripts/make_manifest.py` 更新完整性清单。已经开始训练的运行继续绑定原代码；新代码使用新的工作目录。检查报告及历史记录单独保留，不随本代码和数据包分发；不能将历史 PASS 当成本次重新验证的结果。

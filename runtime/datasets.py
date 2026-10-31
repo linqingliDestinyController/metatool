@@ -1,4 +1,4 @@
-"""Bind external frozen RL inputs. No RL training examples are bundled."""
+"""Bind explicit frozen RL input paths; bundled data/rl or external parquet must match the same frozen hashes."""
 from pathlib import Path
 from metatool.release import ROOT,read,sha
 
