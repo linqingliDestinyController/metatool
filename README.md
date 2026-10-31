@@ -68,16 +68,6 @@ python run.py evaluate --model "$FINAL" \
   --output /absolute/path/to/metatool_rl_work/eval_api --gpu 0
 ```
 
-Evaluation uses 597 examples: 399 at Level 1, 67 at Level 2, and 131 at Level 3. The parser, soft-match rules, and sampling settings are defined by the evaluation implementation. Raw generation chunks are saved before parsing and scoring. Generation runs in a separate vLLM process.
-
-Score existing predictions on CPU:
-
-```bash
-CUDA_VISIBLE_DEVICES="" python run.py score \
-  --predictions /absolute/path/to/predictions.jsonl \
-  --output /absolute/path/to/api_scores.json
-```
-
 ## Environment
 
 The reference environment is specified in `configs/environment.json`:
