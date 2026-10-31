@@ -1,7 +1,7 @@
-# Metatool 
+## Metatool 
 This is the demo RL training code for the paper:"MetaTool : Thinking Just Enough, Calling Tools When Needed" . 
 
-# Model Structure
+## Model Structure
 ![main](main.png)
 
 ## Run
